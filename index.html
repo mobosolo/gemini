@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Génération de reponse</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      #result {
+        margin-top: 20px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        background-color: #f9f9f9;
+        min-height: 50px;
+      }
+      #loading {
+        display: none;
+        margin-top: 10px;
+        font-style: italic;
+        color: gray;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Analyse de contenu génératif</h1>
+    <button id="analyzeButton">Générer une réponse</button>
+    <div id="loading">Analyse en cours...</div>
+    <div id="result"></div>
+
+    <script>
+      document
+        .getElementById("analyzeButton")
+        .addEventListener("click", async () => {
+          const resultDiv = document.getElementById("result");
+          const loadingDiv = document.getElementById("loading");
+
+          // Réinitialiser le contenu et afficher le message de chargement
+          resultDiv.textContent = "";
+          loadingDiv.style.display = "block";
+
+          try {
+            const response = await fetch("http://localhost:3000/analyse");
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder("utf-8");
+
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              // Décoder et afficher les morceaux de texte au fur et à mesure
+              const chunkText = decoder.decode(value);
+              resultDiv.textContent += chunkText;
+            }
+          } catch (error) {
+            resultDiv.textContent = "Erreur lors de l'analyse.";
+            console.error(error);
+          } finally {
+            // Masquer le message de chargement
+            loadingDiv.style.display = "none";
+          }
+        });
+    </script>
+  </body>
+</html>
