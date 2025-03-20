@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Génération de reponse</title>
+    <title>Générateur de résumés</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -15,12 +15,6 @@
         border: 1px solid #ccc;
         background-color: #f9f9f9;
         min-height: 50px;
-      }
-      #loading {
-        display: none;
-        margin-top: 10px;
-        font-style: italic;
-        color: gray;
       }
       button {
         padding: 10px 20px;
@@ -37,41 +31,29 @@
     </style>
   </head>
   <body>
-    <h1>Analyse de contenu génératif</h1>
-    <button id="analyzeButton">Générer une réponse</button>
-    <div id="loading">Analyse en cours...</div>
-    <div id="result"></div>
+    <h1>Générateur de résumés</h1>
+    <button id="generateButton">Générer un résumé</button>
+    <div id="result">Le résumé apparaîtra ici...</div>
 
     <script>
       document
-        .getElementById("analyzeButton")
+        .getElementById("generateButton")
         .addEventListener("click", async () => {
           const resultDiv = document.getElementById("result");
-          const loadingDiv = document.getElementById("loading");
-
-          // Réinitialiser le contenu et afficher le message de chargement
-          resultDiv.textContent = "";
-          loadingDiv.style.display = "block";
+          resultDiv.textContent = "Analyse en cours...";
 
           try {
             const response = await fetch("http://localhost:3000/analyse");
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder("utf-8");
 
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-
-              // Décoder et afficher les morceaux de texte au fur et à mesure
-              const chunkText = decoder.decode(value);
-              resultDiv.textContent += chunkText;
+            if (!response.ok) {
+              throw new Error("Erreur lors de la génération du résumé.");
             }
+
+            const data = await response.json();
+            resultDiv.textContent = data.summary;
           } catch (error) {
-            resultDiv.textContent = "Erreur lors de l'analyse.";
+            resultDiv.textContent = "Erreur : " + error.message;
             console.error(error);
-          } finally {
-            // Masquer le message de chargement
-            loadingDiv.style.display = "none";
           }
         });
     </script>
