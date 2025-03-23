@@ -1,61 +1,109 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Générateur de résumés</title>
+    <title>Résumé de PDF</title>
     <style>
       body {
         font-family: Arial, sans-serif;
         margin: 20px;
+        padding: 0;
+        background-color: #f4f4f9;
       }
-      #result {
-        margin-top: 20px;
-        padding: 10px;
-        border: 1px solid #ccc;
-        background-color: #f9f9f9;
-        min-height: 50px;
+      h1 {
+        color: #333;
       }
       button {
         padding: 10px 20px;
-        font-size: 16px;
-        cursor: pointer;
         background-color: #007bff;
         color: white;
         border: none;
+        cursor: pointer;
+      }
+      button:disabled {
+        background-color: #ccc;
+      }
+      .error {
+        color: red;
+        margin-top: 10px;
+      }
+      .summary {
+        margin-top: 20px;
+        padding: 10px;
+        background-color: #fff;
+        border: 1px solid #ddd;
         border-radius: 5px;
       }
-      button:hover {
-        background-color: #0056b3;
+      .summary h2 {
+        color: #007bff;
+      }
+      .summary h3 {
+        margin: 10px 0 5px;
+      }
+      .summary p {
+        margin: 5px 0 15px;
       }
     </style>
   </head>
   <body>
-    <h1>Générateur de résumés</h1>
-    <button id="generateButton">Générer un résumé</button>
-    <div id="result">Le résumé apparaîtra ici...</div>
+    <h1>Résumé de PDF</h1>
+    <button id="fetchSummaryButton">Afficher le résumé</button>
+    <div id="errorMessage" class="error"></div>
+    <div id="summaryContainer" class="summary" style="display: none"></div>
 
     <script>
-      document
-        .getElementById("generateButton")
-        .addEventListener("click", async () => {
-          const resultDiv = document.getElementById("result");
-          resultDiv.textContent = "Analyse en cours...";
+      const fetchSummaryButton = document.getElementById("fetchSummaryButton");
+      const errorMessage = document.getElementById("errorMessage");
+      const summaryContainer = document.getElementById("summaryContainer");
 
-          try {
-            const response = await fetch("http://localhost:3000/analyse");
+      fetchSummaryButton.addEventListener("click", async () => {
+        errorMessage.textContent = "";
+        summaryContainer.style.display = "none";
+        summaryContainer.innerHTML = "";
 
-            if (!response.ok) {
-              throw new Error("Erreur lors de la génération du résumé.");
-            }
+        fetchSummaryButton.disabled = true;
+        fetchSummaryButton.textContent = "Chargement...";
 
-            const data = await response.json();
-            resultDiv.textContent = data.summary;
-          } catch (error) {
-            resultDiv.textContent = "Erreur : " + error.message;
-            console.error(error);
+        try {
+          const response = await fetch("http://localhost:3000/summarize");
+
+          if (!response.ok) {
+            throw new Error("Erreur lors de la génération du résumé.");
           }
-        });
+
+          const data = await response.json();
+
+          // Vérifier si le résumé est structuré
+          if (data.summary && Array.isArray(data.summary)) {
+            summaryContainer.style.display = "block";
+            summaryContainer.innerHTML = `
+              <h2>${data.articleTitle}</h2>
+              <ul>
+                ${data.summary
+                  .map(
+                    (section) => `
+                      <li>
+                        <h4>${section.subtitle}</h4>
+                        <p>${section.content}</p>
+                      </li>
+                    `
+                  )
+                  .join("")}
+              </ul>
+            `;
+          } else {
+            summaryContainer.style.display = "block";
+            summaryContainer.textContent = "Aucun résumé structuré disponible.";
+          }
+        } catch (error) {
+          errorMessage.textContent =
+            error.message || "Une erreur est survenue.";
+        } finally {
+          fetchSummaryButton.disabled = false;
+          fetchSummaryButton.textContent = "Afficher le résumé";
+        }
+      });
     </script>
   </body>
 </html>
