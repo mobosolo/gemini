@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Résumé de PDF</title>
+    <title>Résumé et Flashcards</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -28,35 +28,46 @@
         color: red;
         margin-top: 10px;
       }
-      .summary {
+      .summary,
+      .flashcards {
         margin-top: 20px;
         padding: 10px;
         background-color: #fff;
         border: 1px solid #ddd;
         border-radius: 5px;
       }
-      .summary h2 {
-        color: #007bff;
-      }
-      .summary h3 {
+      .flashcards h3 {
         margin: 10px 0 5px;
       }
-      .summary p {
+      .flashcards p {
         margin: 5px 0 15px;
       }
     </style>
   </head>
   <body>
-    <h1>Résumé de PDF</h1>
+    <h1>Résumé et Flashcards</h1>
     <button id="fetchSummaryButton">Afficher le résumé</button>
+    <button id="fetchFlashcardsButton">Générer les flashcards</button>
     <div id="errorMessage" class="error"></div>
     <div id="summaryContainer" class="summary" style="display: none"></div>
+    <div
+      id="flashcardsContainer"
+      class="flashcards"
+      style="display: none"
+    ></div>
 
     <script>
       const fetchSummaryButton = document.getElementById("fetchSummaryButton");
+      const fetchFlashcardsButton = document.getElementById(
+        "fetchFlashcardsButton"
+      );
       const errorMessage = document.getElementById("errorMessage");
       const summaryContainer = document.getElementById("summaryContainer");
+      const flashcardsContainer = document.getElementById(
+        "flashcardsContainer"
+      );
 
+      // Fonction pour afficher le résumé
       fetchSummaryButton.addEventListener("click", async () => {
         errorMessage.textContent = "";
         summaryContainer.style.display = "none";
@@ -74,7 +85,6 @@
 
           const data = await response.json();
 
-          // Vérifier si le résumé est structuré
           if (data.summary && Array.isArray(data.summary)) {
             summaryContainer.style.display = "block";
             summaryContainer.innerHTML = `
@@ -84,7 +94,7 @@
                   .map(
                     (section) => `
                       <li>
-                        <h4>${section.subtitle}</h4>
+                        <h3>${section.subtitle}</h3>
                         <p>${section.content}</p>
                       </li>
                     `
@@ -102,6 +112,54 @@
         } finally {
           fetchSummaryButton.disabled = false;
           fetchSummaryButton.textContent = "Afficher le résumé";
+        }
+      });
+
+      // Fonction pour afficher les flashcards
+      fetchFlashcardsButton.addEventListener("click", async () => {
+        errorMessage.textContent = "";
+        flashcardsContainer.style.display = "none";
+        flashcardsContainer.innerHTML = "";
+
+        fetchFlashcardsButton.disabled = true;
+        fetchFlashcardsButton.textContent = "Chargement...";
+
+        try {
+          const response = await fetch("http://localhost:3000/flashcards");
+
+          if (!response.ok) {
+            throw new Error("Erreur lors de la génération des flashcards.");
+          }
+
+          const data = await response.json();
+
+          if (Array.isArray(data) && data.length > 0) {
+            flashcardsContainer.style.display = "block";
+            flashcardsContainer.innerHTML = `
+              <h2>Flashcards</h2>
+              <ul>
+                ${data
+                  .map(
+                    (card) => `
+                      <li>
+                        <h3>Question : ${card.question}</h3>
+                        <p>Réponse : ${card.answer}</p>
+                      </li>
+                    `
+                  )
+                  .join("")}
+              </ul>
+            `;
+          } else {
+            flashcardsContainer.style.display = "block";
+            flashcardsContainer.textContent = "Aucune flashcard disponible.";
+          }
+        } catch (error) {
+          errorMessage.textContent =
+            error.message || "Une erreur est survenue.";
+        } finally {
+          fetchFlashcardsButton.disabled = false;
+          fetchFlashcardsButton.textContent = "Générer les flashcards";
         }
       });
     </script>
