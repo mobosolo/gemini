@@ -4,6 +4,13 @@ import dotenv from "dotenv";
 import express from "express";
 import multer from "multer";
 import * as fs from "node:fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Recréer __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 dotenv.config();
 
 // Configuration de l'API Google Generative AI
@@ -197,32 +204,12 @@ async function generateQuizFromPDF(pdfBuffer) {
 
 // Configuration du serveur Express
 const app = express();
-app.use(cors()); // Activer CORS pour permettre les requêtes depuis le front-end
-app.use(express.json()); // Pour analyser les requêtes JSON
+app.use(cors());
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public"))); // Servir les fichiers statiques
 
 // Configuration de multer pour stocker les fichiers en mémoire
 const upload = multer({ storage: multer.memoryStorage() });
-
-// Route pour résumer un PDF statique
-app.get("/summarize", async (req, res) => {
-  try {
-    const pdfPath = "C:/Users/user one/OneDrive/Documents/gemini/algo.pdf"; // Chemin du fichier PDF statique
-    const summaryText = await summarizePDF(pdfPath); // Appeler la fonction pour générer le résumé
-    const summary = JSON.parse(summaryText); // Convertir le texte brut en JSON structuré
-
-    // Vérifier si le résumé est structuré correctement
-    if (!summary.articleTitle || !summary.summary) {
-      return res.status(500).json({
-        error: "Le résumé généré n'est pas structuré correctement.",
-      });
-    }
-
-    res.json(summary); // Envoyer le résumé structuré au client
-  } catch (error) {
-    console.error("Erreur lors du résumé :", error);
-    res.status(500).json({ error: "Erreur lors du résumé du PDF." });
-  }
-});
 
 // Route pour télécharger un fichier et générer un résumé
 app.post("/upload", upload.single("file"), async (req, res) => {
@@ -304,6 +291,16 @@ app.post("/generate-quiz", upload.single("file"), async (req, res) => {
     console.error("Erreur lors de la génération du quiz :", error);
     res.status(500).json({ error: "Erreur lors de la génération du quiz." });
   }
+});
+
+// Route par défaut pour servir index.html
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// Middleware pour gérer les routes non définies
+app.use((req, res) => {
+  res.status(404).json({ error: "Route non définie." });
 });
 
 // Démarrer le serveur
