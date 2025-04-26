@@ -6,5 +6,9 @@
     "express": "^4.21.2",
     "multer": "^1.4.5-lts.2"
   },
-  "type": "module"
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  }
+
 }
