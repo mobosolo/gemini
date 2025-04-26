@@ -4,164 +4,108 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Résumé et Flashcards</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        margin: 20px;
-        padding: 0;
-        background-color: #f4f4f9;
-      }
-      h1 {
-        color: #333;
-      }
-      button {
-        padding: 10px 20px;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        cursor: pointer;
-      }
-      button:disabled {
-        background-color: #ccc;
-      }
-      .error {
-        color: red;
-        margin-top: 10px;
-      }
-      .summary,
-      .flashcards {
-        margin-top: 20px;
-        padding: 10px;
-        background-color: #fff;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-      }
-      .flashcards h3 {
-        margin: 10px 0 5px;
-      }
-      .flashcards p {
-        margin: 5px 0 15px;
-      }
-    </style>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <h1>Résumé et Flashcards</h1>
-    <button id="fetchSummaryButton">Afficher le résumé</button>
-    <button id="fetchFlashcardsButton">Générer les flashcards</button>
-    <div id="errorMessage" class="error"></div>
-    <div id="summaryContainer" class="summary" style="display: none"></div>
-    <div
-      id="flashcardsContainer"
-      class="flashcards"
-      style="display: none"
-    ></div>
+    <div class="container">
+      <!-- En-tête -->
+      <header>
+        <img src="img/stood.png" alt="logo" class="logo" />
+      </header>
 
-    <script>
-      const fetchSummaryButton = document.getElementById("fetchSummaryButton");
-      const fetchFlashcardsButton = document.getElementById(
-        "fetchFlashcardsButton"
-      );
-      const errorMessage = document.getElementById("errorMessage");
-      const summaryContainer = document.getElementById("summaryContainer");
-      const flashcardsContainer = document.getElementById(
-        "flashcardsContainer"
-      );
+      <!-- Formulaire de téléchargement -->
+      <section class="upload-section">
+        <form id="uploadForm" enctype="multipart/form-data">
+          <!-- Sélection du fichier -->
+          <input
+            type="file"
+            id="fileInput"
+            name="file"
+            accept="application/pdf"
+            style="display: none"
+          />
+          <label for="fileInput" class="file-label">
+            <img
+              src="img/file.png"
+              alt="Sélectionner un fichier"
+              class="file-img"
+            />
+            <span id="fileName" class="file-name"
+              >Aucun fichier sélectionné</span
+            >
+          </label>
 
-      // Fonction pour afficher le résumé
-      fetchSummaryButton.addEventListener("click", async () => {
-        errorMessage.textContent = "";
-        summaryContainer.style.display = "none";
-        summaryContainer.innerHTML = "";
+          <!-- Boutons d'action -->
+          <div class="action-buttons">
+            <button type="submit" id="generateSummary" class="btn-res">
+              <img src="img/contract.png" class="resum-img" />
+              <p>Générer un résumé</p>
+            </button>
+            <button type="button" id="generateFlashcards" class="btn-flasch">
+              <img src="img/flash-card.png" class="flasch-img" />
+              <p>Générer des Flashcards</p>
+            </button>
+            <button type="button" id="generateQuiz" class="btn-quiz">
+              <img src="img/quiz.png" alt="Quiz" class="quiz-img" />
+              <p>Générer un Quiz</p>
+            </button>
+          </div>
+        </form>
+        <div id="errorMessage" class="error"></div>
+      </section>
 
-        fetchSummaryButton.disabled = true;
-        fetchSummaryButton.textContent = "Chargement...";
+      <!-- Zone de réponse -->
+      <section class="response-section">
+        <!-- Animation de chargement -->
+        <div
+          id="loadingSpinner"
+          class="loading-spinner"
+          style="display: none"
+        ></div>
 
-        try {
-          const response = await fetch("http://localhost:3000/summarize");
+        <!-- Texte animé -->
+        <div class="blurred-background">
+          <p id="animatedText" class="animated-text"></p>
+        </div>
 
-          if (!response.ok) {
-            throw new Error("Erreur lors de la génération du résumé.");
-          }
+        <!-- Conteneur du résumé -->
+        <div id="summaryContainer" class="summary" style="display: none">
+          Aucun résumé généré
+        </div>
 
-          const data = await response.json();
+        <!-- Conteneur des flashcards -->
+        <div id="flashcardsContainer" class="flashcards" style="display: none">
+          <div id="flashcardContent" class="flashcard-content">
+            Aucun flaschard généré
+          </div>
+          <div class="navigation">
+            <button id="prevFlashcard" class="nav-btn" disabled>
+              Précédent
+            </button>
+            <button id="nextFlashcard" class="nav-btn" disabled>Suivant</button>
+          </div>
+        </div>
 
-          if (data.summary && Array.isArray(data.summary)) {
-            summaryContainer.style.display = "block";
-            summaryContainer.innerHTML = `
-              <h2>${data.articleTitle}</h2>
-              <ul>
-                ${data.summary
-                  .map(
-                    (section) => `
-                      <li>
-                        <h3>${section.subtitle}</h3>
-                        <p>${section.content}</p>
-                      </li>
-                    `
-                  )
-                  .join("")}
-              </ul>
-            `;
-          } else {
-            summaryContainer.style.display = "block";
-            summaryContainer.textContent = "Aucun résumé structuré disponible.";
-          }
-        } catch (error) {
-          errorMessage.textContent =
-            error.message || "Une erreur est survenue.";
-        } finally {
-          fetchSummaryButton.disabled = false;
-          fetchSummaryButton.textContent = "Afficher le résumé";
-        }
-      });
+        <!-- Conteneur du quiz -->
+        <div id="quizContainer" class="quiz" style="display: none">
+          Aucun Quiz généré
+        </div>
+      </section>
 
-      // Fonction pour afficher les flashcards
-      fetchFlashcardsButton.addEventListener("click", async () => {
-        errorMessage.textContent = "";
-        flashcardsContainer.style.display = "none";
-        flashcardsContainer.innerHTML = "";
+      <!-- Navigation horizontale -->
+      <section class="navigation-section">
+        <div class="horizontal-navigation">
+          <button id="prevSection" class="nav-btn">Section Précédente</button>
+          <button id="nextSection" class="nav-btn">Section Suivante</button>
+        </div>
+      </section>
 
-        fetchFlashcardsButton.disabled = true;
-        fetchFlashcardsButton.textContent = "Chargement...";
+      <!-- Pied de page -->
+      <footer>
+        <p class="version">Version beta</p>
+      </footer>
+    </div>
 
-        try {
-          const response = await fetch("http://localhost:3000/flashcards");
-
-          if (!response.ok) {
-            throw new Error("Erreur lors de la génération des flashcards.");
-          }
-
-          const data = await response.json();
-
-          if (Array.isArray(data) && data.length > 0) {
-            flashcardsContainer.style.display = "block";
-            flashcardsContainer.innerHTML = `
-              <h2>Flashcards</h2>
-              <ul>
-                ${data
-                  .map(
-                    (card) => `
-                      <li>
-                        <h3>Question : ${card.question}</h3>
-                        <p>Réponse : ${card.answer}</p>
-                      </li>
-                    `
-                  )
-                  .join("")}
-              </ul>
-            `;
-          } else {
-            flashcardsContainer.style.display = "block";
-            flashcardsContainer.textContent = "Aucune flashcard disponible.";
-          }
-        } catch (error) {
-          errorMessage.textContent =
-            error.message || "Une erreur est survenue.";
-        } finally {
-          fetchFlashcardsButton.disabled = false;
-          fetchFlashcardsButton.textContent = "Générer les flashcards";
-        }
-      });
-    </script>
+    <script src="script.js"></script>
   </body>
 </html>
