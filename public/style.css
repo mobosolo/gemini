@@ -306,3 +306,26 @@ footer {
     transform: rotate(360deg);
   }
 }
+
+/* Styles pour les écrans mobiles */
+@media (max-width: 768px) {
+  .action-buttons {
+    flex-direction: column; /* Empile les boutons verticalement */
+    align-items: center;
+    gap: 15px;
+  }
+
+  .action-buttons button {
+    width: 80%; /* Les boutons prennent 80% de la largeur de l'écran */
+    padding: 15px;
+  }
+
+  .action-buttons button img {
+    width: 40px; /* Réduit la taille des icônes */
+    height: 40px;
+  }
+
+  .action-buttons button p {
+    font-size: 12px; /* Réduit la taille du texte */
+  }
+}
