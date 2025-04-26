@@ -1,11 +1,13 @@
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import cors from "cors";
+import dotenv from "dotenv";
 import express from "express";
 import multer from "multer";
 import * as fs from "node:fs";
+dotenv.config();
 
 // Configuration de l'API Google Generative AI
-const genAI = new GoogleGenerativeAI("AIzaSyDjP_Lr6HQqOAF_-v7Vhh-OKAQl0SEDuUk");
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
 const schema = {
   description: "Résumé d'un article avec titres",
