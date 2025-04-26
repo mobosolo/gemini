@@ -307,7 +307,7 @@ app.post("/generate-quiz", upload.single("file"), async (req, res) => {
 });
 
 // Démarrer le serveur
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Serveur démarré sur http://localhost:${PORT}`);
+  console.log(`Serveur démarré sur le port ${PORT}`);
 });
