@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
+import { inject } from "@vercel/analytics";
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
@@ -6,6 +7,8 @@ import multer from "multer";
 import * as fs from "node:fs";
 import path from "path";
 import { fileURLToPath } from "url";
+
+inject();
 
 // Recréer __dirname
 const __filename = fileURLToPath(import.meta.url);
